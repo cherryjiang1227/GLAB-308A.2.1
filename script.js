@@ -40,7 +40,6 @@ const adventurer = {
         type: "Flea",
         belongings: ["small hat", "sunglasses"]
     },
-
     // Now we have a method for “dice rolls,” a common way to handle outcomes in adventuring games. Test this method by calling adventurer.roll() a few times.
     // What if we had many adventurers? As you can imagine, creating several of these objects manually would be time consuming, inefficient, and prone to errors.
     // Next, we will level up our approach using Classes.
@@ -94,7 +93,7 @@ class Adventurer extends Character {
         console.log(`${this.name} is scouting ahead...`);
         super.roll();
     }
-// What else should an adventurer be able to do? What other properties should they have?
+    // What else should an adventurer be able to do? What other properties should they have?
     attack() {
         console.log(`${this.name} attacks the enemy.`);
     }
@@ -106,8 +105,8 @@ robin.inventory.push("sword", "potion", "artifact");
 robin.companion = new Companion("Leo", "Cat");
 robin.companion.companion = new Companion("Frank", "Flea");
 robin.companion.companion.inventory.push(
-  "small hat",
-  "sunglasses"
+    "small hat",
+    "sunglasses"
 );
 
 // Part 4: Class Uniforms
@@ -117,84 +116,98 @@ robin.companion.companion.inventory.push(
 // Add a static ROLES array to the Adventurer class, with the values “Fighter,” “Healer,” and “Wizard.” Feel free to add other roles, if you desire!
 // Add a check to the constructor of the Adventurer class that ensures the given role matches one of these values.
 // Are there other static properties or methods that make sense to add to these classes?
+class Character {
+    static MAX_HEALTH = 100;
 
-Part 5: Gather your Party
-
-Sometimes, you need many objects of a class that have one or more shared property values. A common approach for creating many similar objects of a single class, and keeping track of them is creating a “factory.”
-
-Factories are classes that generate objects according to the factory’s instance properties.
-
-As an example, let’s look at how we might create many “healer” role adventurers using a factory:
-
-class AdventurerFactory {  
-
-  constructor (role) {
-
-    this.role = role;
-
-    this.adventurers = [];
-
-  }
-
-  generate (name) {
-
-    const newAdventurer = new Adventurer(name, this.role);
-
-    this.adventurers.push(newAdventurer);
-
-  }
-
-  findByIndex (index) {
-
-    return this.adventurers[index];
-
-  }
-
-  findByName (name) {
-
-    return this.adventurers.find((a) => a.name === name);
-
-  }
-
+    constructor(name) {
+        this.name = name;
+        this.health = Character.MAX_HEALTH;
+        this.inventory = [];
+    }
+    roll(mod = 0) {
+        const result = Math.floor(Math.random() * 20) + 1 + mod;
+        console.log(`${this.name} rolled a ${result}.`);
+    }
 }
 
+class Adventurer extends Character {
+    static ROLES = ["Fighter", "Healer", "Wizard"];
+    constructor(name, role) {
+        super(name);
+        if (!Adventurer.ROLES.includes(role)) {
+            throw new Error("Invalid role");
+        }
+        this.role = role;
+        this.inventory.push("bedroll", "50 gold coins");
+    }
+    scout() {
+        console.log(`${this.name} is scouting ahead...`);
+        super.roll();
+    }
+    attack() {
+        console.log(`${this.name} attacks the enemy.`);
+    }
+}
 
+// Part 5: Gather your Party
+// Sometimes, you need many objects of a class that have one or more shared property values.A common approach for creating many similar objects of a single class, and keeping track of them is creating a “factory.”
+// Factories are classes that generate objects according to the factory’s instance properties.
+// As an example, let’s look at how we might create many “healer” role adventurers using a factory:
+class AdventurerFactory {
+    constructor(role) {
+        this.role = role;
+        this.adventurers = [];
+    }
+    generate(name) {
+        const newAdventurer = new Adventurer(name, this.role);
+        this.adventurers.push(newAdventurer);
+        return newAdventurer;
+    }
+    findByIndex(index) {
+        return this.adventurers[index];
+    }
+    findByName(name) {
+        return this.adventurers.find((a) => a.name === name);
+    }
+    duel(opponent) {
+        while (this.health > 50 && opponent.health > 50) {
+            let roll1 = Math.floor(Math.random() * 20) + 1;
+            let roll2 = Math.floor(Math.random() * 20) + 1;
 
+            console.log(`${this.name} rolled ${roll1}`);
+            console.log(`${opponent.name} rolled ${roll2}`);
+
+            if (roll1 > roll2) {
+                opponent.health -= 1;
+            } else if (roll2 > roll1) {
+                this.health -= 1;
+            }
+        }
+        if (this.health > opponent.health) {
+            console.log(`${this.name} wins!`);
+        } else {
+            console.log(`${opponent.name} wins!`);
+        }
+    }
+};
 const healers = new AdventurerFactory("Healer");
-
 const robin = healers.generate("Robin");
+// Now, we can create many “healers” using the healer factory, and conveniently find them using the factory’s methods. We can also add additional convenience methods to the factory as the requirements of the program expand.
+// An alternative approach to this would be to extend the Adventurer class to create a Healer class. This would be the practical approach if healers had additional properties and methods, but if healers are just adventurers with a specific role, creating an entire class for them is inefficient.
+// In the next part, it may be prudent to create classes for each adventuring role, depending on the additional properties and methods you would like to add.
 
-
-Now, we can create many “healers” using the healer factory, and conveniently find them using the factory’s methods. We can also add additional convenience methods to the factory as the requirements of the program expand.
-
-An alternative approach to this would be to extend the Adventurer class to create a Healer class. This would be the practical approach if healers had additional properties and methods, but if healers are just adventurers with a specific role, creating an entire class for them is inefficient.
-
-In the next part, it may be prudent to create classes for each adventuring role, depending on the additional properties and methods you would like to add.
-
-
-Part 6: Developing Skills
-
-Many of the core features of these characters are now implemented, but the adventurers cannot  really do much yet. The only action (method) they have is scout().
-
-Create an additional method, duel(), for the Adventurer class with the following functionality:
-
-Accept an Adventurer as a parameter.
-
-Use the roll() functionality to create opposing rolls for each adventurer.
-
-Subtract 1 from the adventurer with the lower roll.
-
-Log the results of this “round” of the duel, including the rolls and current health values.
-
-Repeat this process until one of the two adventurers reaches 50 health.
-
-Log the winner of the duel: the adventurer still above 50 health.
-
-What other properties and methods could these classes have? Should fighters, healers, and wizards have their own methods? Should companions have specific methods?
-
-Feel free to experiment with your own ideas, be they silly or practical. The goal of this exercise is to develop new skills for the characters and yourself! Express your creativity.
-
-
+// Part 6: Developing Skills
+// Many of the core features of these characters are now implemented, but the adventurers cannot really do much yet. The only action(method) they have is scout().
+// Create an additional method, duel(), for the Adventurer class with the following functionality:
+// Accept an Adventurer as a parameter.
+// Use the roll() functionality to create opposing rolls for each adventurer.
+// Subtract 1 from the adventurer with the lower roll.
+// Log the results of this “round” of the duel, including the rolls and current health values.
+// Repeat this process until one of the two adventurers reaches 50 health.
+// Log the winner of the duel: the adventurer still above 50 health.
+// What other properties and methods could these classes have? Should fighters, healers, and wizards have their own methods ? Should companions have specific methods?
+// Feel free to experiment with your own ideas, be they silly or practical.The goal of this exercise is to develop new skills for the characters and yourself! Express your creativity.
+console.log("See part 5 for duel method.")
 
 
 // Part 7: Adventure Forth
